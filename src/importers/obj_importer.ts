@@ -363,4 +363,8 @@ export class ObjImporter extends IImporter {
             }
         }
     }
+
+    public override getSupportedFileExtensions(): string[] {
+        return ['.obj'];
+    }
 }

@@ -5,12 +5,12 @@ import { remote } from 'electron';
 import * as path from 'path';
 
 export class FileInputElement extends LabelledElement<string> {
-    private _fileExtension: string;
+    private _fileExtensions: string[];
     private _loadedFilePath: string;
 
-    public constructor(label: string, fileExtension: string) {
+    public constructor(label: string, fileExtensions: string[]) {
         super(label);
-        this._fileExtension = fileExtension;
+        this._fileExtensions = fileExtensions;
         this._loadedFilePath = '';
     }
 
@@ -36,7 +36,7 @@ export class FileInputElement extends LabelledElement<string> {
                 buttonLabel: 'Load',
                 filters: [{
                     name: 'Waveform obj file',
-                    extensions: [`${this._fileExtension}`],
+                    extensions: this._fileExtensions,
                 }],
             });
             if (files && files.length === 1) {

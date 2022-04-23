@@ -18,6 +18,8 @@ import { StatusHandler } from './status';
 import { UIMessageBuilder } from './ui/misc';
 import { OutputStyle } from './ui/elements/output';
 
+import path from 'path';
+
 /* eslint-disable */
 export enum EAction {
     Import = 0,
@@ -137,11 +139,19 @@ export class AppContext {
         const uiElements = this._ui.layout.import.elements;
         const filePath = uiElements.input.getCachedValue();
 
-        const importer = new ObjImporter();
-        importer.parseFile(filePath);
-        this._loadedMesh = importer.toMesh();
-        this._loadedMesh.processMesh();
-        Renderer.Get.useMesh(this._loadedMesh);
+        const parsedPath = path.parse(filePath);
+
+        const importers = [new ObjImporter()];
+        for (const importer of importers) {
+            if (importer.supports(parsedPath.ext.toLowerCase())) {
+                this._loadedMesh = importer.toMesh();
+                this._loadedMesh.processMesh();
+                Renderer.Get.useMesh(this._loadedMesh);
+                return;
+            }
+        }
+
+        throw new AppError(`Could not load file-type '${parsedPath.ext.toLowerCase()}' when loading ${parsedPath.base}`);
     }
 
     private _simplify() {

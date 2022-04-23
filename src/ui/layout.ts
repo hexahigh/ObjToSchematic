@@ -34,7 +34,7 @@ export class UI {
         'import': {
             label: 'Import',
             elements: {
-                'input': new FileInputElement('Wavefront .obj file', 'obj'),
+                'input': new FileInputElement('Model file', ['obj', 'fbx']),
             },
             elementsOrder: ['input'],
             submitButton: new ButtonElement('Load mesh', () => {
