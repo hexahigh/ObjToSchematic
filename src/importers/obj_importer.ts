@@ -1,4 +1,4 @@
-import { IImporter } from '../importer';
+import { IImporter } from './base_importer';
 import { MaterialType, Mesh, SolidMaterial, TexturedMaterial, Tri } from '../mesh';
 import { Vector3 } from '../vector';
 import { UV, ASSERT, RGB, AppError, REGEX_NUMBER, RegExpBuilder, REGEX_NZ_ANY, LOG_ERROR } from '../util';
@@ -237,7 +237,7 @@ export class ObjImporter extends IImporter {
         },
     ];
 
-    override parseFile(filePath: string) {
+    public parseFile(filePath: string) {
         ASSERT(path.isAbsolute(filePath), 'path not absolute');
         
         this._objPath = path.parse(filePath);

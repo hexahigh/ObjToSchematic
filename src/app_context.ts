@@ -3,7 +3,6 @@ import { Schematic } from './exporters/schematic_exporter';
 import { Litematic } from './exporters/litematic_exporter';
 import { Renderer } from './renderer';
 import { Mesh } from './mesh';
-import { ObjImporter } from './importers/obj_importer';
 import { ASSERT, ColourSpace, AppError, LOG, LOG_ERROR, LOG_WARN, TIME_START, TIME_END } from './util';
 
 import { remote } from 'electron';
@@ -19,6 +18,7 @@ import { UIMessageBuilder } from './ui/misc';
 import { OutputStyle } from './ui/elements/output';
 
 import path from 'path';
+import { MeshImporter } from './mesh_importer';
 
 /* eslint-disable */
 export enum EAction {
@@ -139,19 +139,9 @@ export class AppContext {
         const uiElements = this._ui.layout.import.elements;
         const filePath = uiElements.input.getCachedValue();
 
-        const parsedPath = path.parse(filePath);
-
-        const importers = [new ObjImporter()];
-        for (const importer of importers) {
-            if (importer.supports(parsedPath.ext.toLowerCase())) {
-                this._loadedMesh = importer.toMesh();
-                this._loadedMesh.processMesh();
-                Renderer.Get.useMesh(this._loadedMesh);
-                return;
-            }
-        }
-
-        throw new AppError(`Could not load file-type '${parsedPath.ext.toLowerCase()}' when loading ${parsedPath.base}`);
+        this._loadedMesh = MeshImporter.import(filePath);
+        this._loadedMesh.processMesh();
+        Renderer.Get.useMesh(this._loadedMesh);
     }
 
     private _simplify() {
