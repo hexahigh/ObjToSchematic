@@ -10,6 +10,7 @@
   "scripts": {
     "lint": "eslint --fix src tools tests --ext .ts",
     "build": "tsc",
+    "build-addon": "node-gyp clean configure build",
     "test": "jest --config jestconfig.json",
     "start": "npm run build && electron ./dist/src/main.js --enable-logging --remote-debugging-port=9222",
     "atlas": "node ./dist/tools/build-atlas.js",
@@ -58,11 +59,15 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "bindings": "^1.5.0",
     "bvh-tree": "^1.0.1",
     "jpeg-js": "^0.4.4",
+    "node-addon-api": "^5.0.0",
+    "node-gyp": "^9.3.0",
     "pngjs": "^6.0.0",
     "prismarine-nbt": "^1.6.0",
     "twgl.js": "^4.19.1",
     "varint-array": "^0.0.0"
-  }
+  },
+  "gypfile": true
 }

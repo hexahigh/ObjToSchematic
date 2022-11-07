@@ -25,6 +25,8 @@ export class AppContext {
     private _lastAction?: EAction;
 
     public constructor() {
+        require('./test').hello();
+
         Logger.Get.enableLogToFile();
         Logger.Get.initLogFile('client');
         Logger.Get.enableLOG();

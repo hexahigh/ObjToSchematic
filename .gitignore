@@ -17,3 +17,5 @@ notes.txt
 *.DS_Store
 .dependency-cruiser.js
 dependencygraph.svg
+/build/
+/.vscode/c_cpp_properties.json
