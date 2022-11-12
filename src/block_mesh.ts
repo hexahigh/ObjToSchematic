@@ -90,6 +90,7 @@ export class BlockMesh {
         const palette = Palette.load(blockMeshParams.blockPalette);
         ASSERT(palette !== undefined, 'Could not load palette');
 
+        /*
         const atlasPalette = new AtlasPalette(atlas, palette);
         const allBlockCollection = atlasPalette.createBlockCollection([]);
         const nonFallableBlockCollection = atlasPalette.createBlockCollection(this._fallableBlocks);
@@ -132,10 +133,11 @@ export class BlockMesh {
             this._blocksUsed.add(block.name);
         }
         ProgressManager.Get.end(taskHandle);
-
+        
         if (blockMeshParams.fallable === 'do-nothing' && countFalling > 0) {
             StatusHandler.Get.add('warning', `${countFalling.toLocaleString()} blocks will fall under gravity when this structure is placed`);
         }
+        */
     }
 
     public getBlocks(): Block[] {

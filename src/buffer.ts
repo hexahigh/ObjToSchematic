@@ -59,30 +59,21 @@ export class ChunkedBufferGenerator {
     public static fromVoxelMesh(voxelMesh: VoxelMesh, params: RenderNextVoxelMeshChunkParams.Input, chunkIndex: number): TVoxelMeshBufferDescription & { moreVoxelsToBuffer: boolean, progress: number } {
         const numTotalVoxels = voxelMesh.getVoxelCount();
         const voxelsStartIndex = chunkIndex * AppConfig.Get.VOXEL_BUFFER_CHUNK_SIZE;
+        //const voxelsEndIndex = numTotalVoxels;
         const voxelsEndIndex = Math.min((chunkIndex + 1) * AppConfig.Get.VOXEL_BUFFER_CHUNK_SIZE, numTotalVoxels);
+        //const voxelsEndIndex = numTotalVoxels;
         ASSERT(voxelsStartIndex < numTotalVoxels, 'Invalid voxel start index');
 
         const numBufferVoxels = voxelsEndIndex - voxelsStartIndex;
         const newBuffer: TVoxelMeshBuffer = BufferGenerator.createVoxelMeshBuffer(numBufferVoxels);
 
         const cube: AttributeData = GeometryTemplates.getBoxBufferData(new Vector3(0, 0, 0));
-        const voxels = voxelMesh.getVoxels();
+        //const voxels = voxelMesh.getVoxels();
+
+        newBuffer.position.data = voxelMesh.getInternal().getPositionsRenderBuffer(voxelsStartIndex, voxelsEndIndex);
+        newBuffer.colour.data = voxelMesh.getInternal().getColoursRenderBuffer(voxelsStartIndex, voxelsEndIndex);
 
         for (let i = 0; i < numBufferVoxels; ++i) {
-            const voxelIndex = i + voxelsStartIndex;
-            
-            const voxel = voxels[voxelIndex];
-            const voxelColourArray = [voxel.colour.r, voxel.colour.g, voxel.colour.b, voxel.colour.a];
-            const voxelPositionArray = voxel.position.toArray();
-
-            for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.POSITION; ++j) {
-                newBuffer.position.data[i * AppConstants.VoxelMeshBufferComponentOffsets.POSITION + j] = cube.custom.position[j] + voxelPositionArray[j % 3];
-            }
-
-            for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.COLOUR; ++j) {
-                newBuffer.colour.data[i * AppConstants.VoxelMeshBufferComponentOffsets.COLOUR + j] = voxelColourArray[j % 4];
-            }
-
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.NORMAL; ++j) {
                 newBuffer.normal.data[i * AppConstants.VoxelMeshBufferComponentOffsets.NORMAL + j] = cube.custom.normal[j];
             }
@@ -96,7 +87,7 @@ export class ChunkedBufferGenerator {
             }
 
             if (params.enableAmbientOcclusion) {
-                const voxelOcclusionArray = OcclusionManager.Get.getOcclusions(voxel.position, voxelMesh);
+                const voxelOcclusionArray = OcclusionManager.Get.getBlankOcclusions();
                 for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.OCCLUSION; ++j) {
                     newBuffer.occlusion.data[i * AppConstants.VoxelMeshBufferComponentOffsets.OCCLUSION + j] = voxelOcclusionArray[j];
                 }

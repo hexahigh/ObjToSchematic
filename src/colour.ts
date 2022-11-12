@@ -11,6 +11,15 @@ export type RGBA = {
 export type RGBA_255 = TBrand<RGBA, '255'>;
 
 export namespace RGBAUtil {
+    export function fromArray(arr: ArrayLike<number>) {
+        return {
+            r: arr[0],
+            g: arr[1],
+            b: arr[2],
+            a: arr[3],
+        };
+    }
+
     export function toRGBA255(c: RGBA): RGBA_255 {
         const out: RGBA = {
             r: c.r * 255,

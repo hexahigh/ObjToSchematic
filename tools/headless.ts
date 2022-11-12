@@ -57,6 +57,7 @@ export function runHeadless(headlessConfig: THeadlessConfig) {
          * to create its data, in headless mode this render buffer is not created so we must
          * generate it manually
          */
+        /*
         {
             let result;
             do {
@@ -64,8 +65,9 @@ export function runHeadless(headlessConfig: THeadlessConfig) {
                     enableAmbientOcclusion: headlessConfig.voxelise.enableAmbientOcclusion,
                     desiredHeight: headlessConfig.voxelise.desiredHeight,
                 });
-            } while (result.moreVoxelsToBuffer);
+            } while (result && result.moreVoxelsToBuffer);
         }
+        */
 
         worker.export(headlessConfig.export);
         StatusHandler.Get.dump().clear();

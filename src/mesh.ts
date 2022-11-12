@@ -59,6 +59,39 @@ export class Mesh {
         this._loadedTextures = {};
     }
 
+    public getFlatVertices(): Float32Array {
+        const flat = new Float32Array(this._vertices.length * 3);
+        this._vertices.forEach((vertex, index) => {
+            flat[index * 3 + 0] = vertex.x;
+            flat[index * 3 + 1] = vertex.y;
+            flat[index * 3 + 2] = vertex.z;
+        });
+        return flat;
+    }
+
+    public getFlatTexcoords(): Float32Array {
+        const flat = new Float32Array(this._uvs.length * 2);
+        this._uvs.forEach((vertex, index) => {
+            flat[index * 2 + 0] = vertex.u;
+            flat[index * 2 + 1] = vertex.v;
+        });
+        return flat;
+    }
+
+    public getFlatTriangles(): Int32Array {
+        const flat = new Int32Array(this._tris.length * 6);
+        this._tris.forEach((tri, index) => {
+            flat[index * 6 + 0] = tri.positionIndices.x;
+            flat[index * 6 + 1] = tri.positionIndices.y;
+            flat[index * 6 + 2] = tri.positionIndices.z;
+            
+            flat[index * 6 + 3] = tri.texcoordIndices?.x ?? -1;
+            flat[index * 6 + 4] = tri.texcoordIndices?.y ?? -1;
+            flat[index * 6 + 5] = tri.texcoordIndices?.z ?? -1;
+        });
+        return flat;
+    }
+
     // TODO: Always check
     public processMesh() {
         this._checkMesh();

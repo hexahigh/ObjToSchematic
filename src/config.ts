@@ -36,7 +36,7 @@ export class AppConfig {
     private constructor() {
         this.RELEASE_MODE = false;
         this.RELEASE_VERSION = '0.7.0d';
-        this.VOXEL_BUFFER_CHUNK_SIZE = 5_000;
+        this.VOXEL_BUFFER_CHUNK_SIZE = 50_000;
 
         const configFile = fs.readFileSync(PathUtil.join(AppPaths.Get.resources, 'config.json'), 'utf8');
         const configJSON = JSON.parse(configFile);

@@ -105,8 +105,8 @@ export class DebugGeometryTemplates {
     }
 
     public static cube(centre: Vector3, size: number, colour: RGBA): AttributeData {
-        const min = Vector3.sub(centre, size/2);
-        const max = Vector3.add(centre, size/2);
+        const min = Vector3.sub(centre, size / 2);
+        const max = Vector3.add(centre, size / 2);
         const bounds = new Bounds(min, max);
         return this.bounds(bounds, colour);
     }
@@ -161,7 +161,7 @@ export class DebugGeometryTemplates {
         for (let i = 0; i < steps; ++i) {
             const point = circlePoints[i];
             positions.push(point.x, point.y, point.z);
-            indices.push(i, (i+1) % steps);
+            indices.push(i, (i + 1) % steps);
             colours.push(colour.r, colour.g, colour.b, colour.a);
         }
 
@@ -187,7 +187,7 @@ export class DebugGeometryTemplates {
         for (let i = 0; i < steps; ++i) {
             const point = circlePoints[i];
             positions.push(point.x, point.y, point.z);
-            indices.push(i, (i+1) % steps);
+            indices.push(i, (i + 1) % steps);
             colours.push(colour.r, colour.g, colour.b, colour.a);
         }
         // Add cone tip
@@ -217,7 +217,7 @@ export class DebugGeometryTemplates {
 
         const normal = Vector3.sub(end, start).normalise();
         const cone = DebugGeometryTemplates.cone(end, coneHeight, normal, coneRadius, colour, 1);
-        
+
         return MergeAttributeData(line, cone);
     }
 
@@ -229,7 +229,7 @@ export class DebugGeometryTemplates {
             { name: 'position', numComponents: 3 },
             { name: 'colour', numComponents: 4 },
         ]);
-        
+
         buffer.add(DebugGeometryTemplates.line(
             new Vector3(0, -dimensions.y / 2, -dimensions.z / 2),
             new Vector3(0, -dimensions.y / 2, dimensions.z / 2),
@@ -281,7 +281,7 @@ export class DebugGeometryTemplates {
             { name: 'position', numComponents: 3 },
             { name: 'colour', numComponents: 4 },
         ]);
-        
+
         buffer.add(DebugGeometryTemplates.line(
             new Vector3(-dimensions.x / 2, 0, -dimensions.z / 2),
             new Vector3(-dimensions.x / 2, 0, dimensions.z / 2),
@@ -333,7 +333,7 @@ export class DebugGeometryTemplates {
             { name: 'position', numComponents: 3 },
             { name: 'colour', numComponents: 4 },
         ]);
-        
+
         buffer.add(DebugGeometryTemplates.line(
             new Vector3(-dimensions.x / 2, -dimensions.y / 2, 0),
             new Vector3(-dimensions.x / 2, dimensions.y / 2, 0),
@@ -417,11 +417,13 @@ export class DebugGeometryTemplates {
             dimensions.y % 2 === 0 ? 0 : -0.5,
             dimensions.z % 2 === 0 ? 0 : -0.5,
         );
+        /*
         for (const voxel of voxelMesh.getVoxels()) {
             buffer.add(DebugGeometryTemplates.cube(
                 Vector3.mulScalar(Vector3.add(voxel.position, gridOffset), voxelSize), voxelSize, colour,
             ));
         }
+        */
 
         return buffer;
     }

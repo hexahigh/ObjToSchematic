@@ -24,7 +24,7 @@ export class Vector3 implements IHashable {
         this.z = vec.z;
     }
 
-    static fromArray(arr: number[]) {
+    static fromArray(arr: ArrayLike<number>) {
         ASSERT(arr.length === 3);
         return new Vector3(arr[0], arr[1], arr[2]);
     }
@@ -43,7 +43,7 @@ export class Vector3 implements IHashable {
 
     static parse(line: string) {
         const regex = /[+-]?\d+(\.\d+)?/g;
-        const floats = line.match(regex)!.map(function(v) {
+        const floats = line.match(regex)!.map(function (v) {
             return parseFloat(v);
         });
 

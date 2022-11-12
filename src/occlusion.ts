@@ -29,7 +29,7 @@ export class OcclusionManager {
 
     public getOcclusions(centre: Vector3, voxelMesh: VoxelMesh) {
         // Cache local neighbours
-        const neighbourData = voxelMesh.getNeighbourhoodMap().get(centre.hash());
+        const neighbourData = voxelMesh.getNeighbours(centre);
         if (neighbourData === undefined) {
             // This voxel has no neighbours within a 1-block radius
             return this.getBlankOcclusions();
@@ -64,9 +64,9 @@ export class OcclusionManager {
 
 
                 const baseIndex = f * 16 + v;
-                this._occlusions[baseIndex +  0] = occlusionValue;
-                this._occlusions[baseIndex +  4] = occlusionValue;
-                this._occlusions[baseIndex +  8] = occlusionValue;
+                this._occlusions[baseIndex + 0] = occlusionValue;
+                this._occlusions[baseIndex + 4] = occlusionValue;
+                this._occlusions[baseIndex + 8] = occlusionValue;
                 this._occlusions[baseIndex + 12] = occlusionValue;
             }
         }
@@ -83,7 +83,7 @@ export class OcclusionManager {
     }
 
     public static getNeighbourIndex(neighbour: Vector3) {
-        return 9*(neighbour.x+1) + 3*(neighbour.y+1) + (neighbour.z+1);
+        return 9 * (neighbour.x + 1) + 3 * (neighbour.y + 1) + (neighbour.z + 1);
     }
 
     private _setupOcclusions() {
