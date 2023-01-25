@@ -15,10 +15,13 @@ test('Schematic-friendly Palette', () => {
     config.export.filepath = PathUtil.join(AppPaths.Get.testData, '../out/friendly.schematic');
 
     const worker = WorkerClient.Get;
-    worker.import(headlessConfig.import);
-    worker.voxelise(headlessConfig.voxelise);
-    worker.assign(headlessConfig.assign);
-    worker.export(headlessConfig.export);
-
-    expect(StatusHandler.Get.hasId(StatusID.SchematicUnsupportedBlocks)).toBe(false);
+    worker.import(headlessConfig.import, () => {
+        worker.voxelise(headlessConfig.voxelise, () => {
+            worker.assign(headlessConfig.assign, () => {
+                worker.export(headlessConfig.export, () => {
+                    expect(StatusHandler.Get.hasId(StatusID.SchematicUnsupportedBlocks)).toBe(false);
+                });
+            });
+        });
+    });
 });

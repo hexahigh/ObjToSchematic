@@ -7,6 +7,7 @@ import { ExporterFactory } from './exporters/exporters';
 import { ObjImporter } from './importers/obj_importer';
 import { Mesh } from './mesh';
 import { ProgressManager, TTaskHandle } from './progress';
+import { StatusHandler } from './status';
 import { ASSERT } from './util/error_util';
 import { Logger } from './util/log_util';
 import { VoxelMesh } from './voxel_mesh';
@@ -32,7 +33,7 @@ export class WorkerClient {
     /**
      * This function should only be called if the client is using the worker.
      */
-    public init(params: InitParams.Input): InitParams.Output {
+    public init(params: InitParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         EventManager.Get.add(EAppEvent.onTaskStart, (e: any) => {
             const message: TFromWorkerMessage = {
                 action: 'Progress',
@@ -67,44 +68,60 @@ export class WorkerClient {
             postMessage(message);
         });
 
-        return {};
+        onFinish({
+            action: 'Init',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {},
+        });
     }
 
-    public import(params: ImportParams.Input): ImportParams.Output {
+    public import(params: ImportParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         const importer = new ObjImporter();
         importer.parseFile(params.filepath);
         this._loadedMesh = importer.toMesh();
         this._loadedMesh.processMesh(params.rotation.y, params.rotation.x, params.rotation.z);
 
-        return {
-            triangleCount: this._loadedMesh.getTriangleCount(),
-            dimensions: this._loadedMesh.getBounds().getDimensions(),
-            materials: this._loadedMesh.getMaterials(),
-        };
+        onFinish({
+            action: 'Import',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+                triangleCount: this._loadedMesh.getTriangleCount(),
+                dimensions: this._loadedMesh.getBounds().getDimensions(),
+                materials: this._loadedMesh.getMaterials(),
+            },
+        });
     }
 
-    public setMaterials(params: SetMaterialsParams.Input): SetMaterialsParams.Output {
+    public setMaterials(params: SetMaterialsParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedMesh !== undefined);
 
         this._loadedMesh.setMaterials(params.materials);
 
-        return {
-            materials: this._loadedMesh.getMaterials(),
-            materialsChanged: Array.from(params.materials.keys()), // TODO: Change to actual materials changed
-        };
+        onFinish({
+            action: 'SetMaterials',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+                materials: this._loadedMesh.getMaterials(),
+                materialsChanged: Array.from(params.materials.keys()), // TODO: Change to actual materials changed
+            },
+        });
     }
 
-    public renderMesh(params: RenderMeshParams.Input): RenderMeshParams.Output {
+    public renderMesh(params: RenderMeshParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedMesh !== undefined);
 
-        return {
-            buffers: BufferGenerator.fromMesh(this._loadedMesh),
-            dimensions: this._loadedMesh.getBounds().getDimensions(),
-        };
+        onFinish({
+            action: 'RenderMesh',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+                buffers: BufferGenerator.fromMesh(this._loadedMesh),
+                dimensions: this._loadedMesh.getBounds().getDimensions(),
+            },
+        });
     }
 
 
-    public voxelise(params: VoxeliseParams.Input): VoxeliseParams.Output {
+    public voxelise(params: VoxeliseParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedMesh !== undefined);
 
         const voxeliser: IVoxeliser = VoxeliserFactory.GetVoxeliser(params.voxeliser);
@@ -112,13 +129,17 @@ export class WorkerClient {
 
         this._voxelMeshChunkIndex = 0;
 
-        return {
-        };
+        onFinish({
+            action: 'Voxelise',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+            },
+        });
     }
 
     private _voxelMeshChunkIndex = 0;
     private _voxelMeshProgressHandle?: TTaskHandle;
-    public renderChunkedVoxelMesh(params: RenderNextVoxelMeshChunkParams.Input): RenderNextVoxelMeshChunkParams.Output {
+    public renderChunkedVoxelMesh(params: RenderNextVoxelMeshChunkParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedVoxelMesh !== undefined);
 
         const isFirstChunk = this._voxelMeshChunkIndex === 0;
@@ -139,29 +160,37 @@ export class WorkerClient {
             }
         }
 
-        return {
-            buffer: buffer,
-            dimensions: this._loadedVoxelMesh.getBounds().getDimensions(),
-            voxelSize: 8.0 / params.desiredHeight,
-            moreVoxelsToBuffer: buffer.moreVoxelsToBuffer,
-            isFirstChunk: isFirstChunk,
-        };
+        onFinish({
+            action: 'RenderNextVoxelMeshChunk',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+                buffer: buffer,
+                dimensions: this._loadedVoxelMesh.getBounds().getDimensions(),
+                voxelSize: 8.0 / params.desiredHeight,
+                moreVoxelsToBuffer: buffer.moreVoxelsToBuffer,
+                isFirstChunk: isFirstChunk,
+            },
+        });
     }
 
-    public assign(params: AssignParams.Input): AssignParams.Output {
+    public assign(params: AssignParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedVoxelMesh !== undefined);
 
         this._loadedBlockMesh = BlockMesh.createFromVoxelMesh(this._loadedVoxelMesh, params);
 
         this._blockMeshChunkIndex = 0;
 
-        return {
-        };
+        onFinish({
+            action: 'Assign',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+            },
+        });
     }
 
     private _blockMeshChunkIndex = 0;
     //private _blockMeshProgressHandle?: TTaskHandle;
-    public renderChunkedBlockMesh(params: RenderNextBlockMeshChunkParams.Input): RenderNextBlockMeshChunkParams.Output {
+    public renderChunkedBlockMesh(params: RenderNextBlockMeshChunkParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedBlockMesh !== undefined);
 
         const isFirstChunk = this._blockMeshChunkIndex === 0;
@@ -172,47 +201,24 @@ export class WorkerClient {
         const buffer = this._loadedBlockMesh.getChunkedBuffer(this._blockMeshChunkIndex);
         ++this._blockMeshChunkIndex;
 
-        /*
-        if (this._blockMeshProgressHandle !== undefined) {
-            if (buffer.moreBlocksToBuffer) {
-                ProgressManager.Get.progress(this._blockMeshProgressHandle, buffer.progress);
-            } else {
-                ProgressManager.Get.end(this._blockMeshProgressHandle);
-                this._blockMeshProgressHandle = undefined;
-            }
-        }
-        */
-
         const atlas = Atlas.load(params.textureAtlas);
         ASSERT(atlas !== undefined);
 
-        return {
-            buffer: buffer,
-            dimensions: this._loadedBlockMesh.getVoxelMesh().getBounds().getDimensions(),
-            atlasTexturePath: atlas.getAtlasTexturePath(),
-            atlasSize: atlas.getAtlasSize(),
-            moreBlocksToBuffer: buffer.moreBlocksToBuffer,
-            isFirstChunk: isFirstChunk,
-        };
+        onFinish({
+            action: 'RenderNextBlockMeshChunk',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+                buffer: buffer,
+                dimensions: this._loadedBlockMesh.getVoxelMesh().getBounds().getDimensions(),
+                atlasTexturePath: atlas.getAtlasTexturePath(),
+                atlasSize: atlas.getAtlasSize(),
+                moreBlocksToBuffer: buffer.moreBlocksToBuffer,
+                isFirstChunk: isFirstChunk,
+            },
+        });
     }
 
-    /*
-    public renderBlockMesh(params: RenderBlockMeshParams.Input): RenderBlockMeshParams.Output {
-        ASSERT(this._loadedBlockMesh !== undefined);
-
-        const atlas = Atlas.load(params.textureAtlas);
-        ASSERT(atlas !== undefined);
-
-        return {
-            buffer: this._loadedBlockMesh.getBuffer(),
-            dimensions: this._loadedBlockMesh.getVoxelMesh().getBounds().getDimensions(),
-            atlasTexturePath: atlas.getAtlasTexturePath(),
-            atlasSize: atlas.getAtlasSize(),
-        };
-    }
-    */
-
-    public export(params: ExportParams.Input): ExportParams.Output {
+    public export(params: ExportParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedBlockMesh !== undefined);
 
         const exporter: IExporter = ExporterFactory.GetExporter(params.exporter);
@@ -222,7 +228,11 @@ export class WorkerClient {
         }
         exporter.export(this._loadedBlockMesh, params.filepath);
 
-        return {
-        };
+        onFinish({
+            action: 'Export',
+            statusMessages: StatusHandler.Get.getAllStatusMessages(),
+            result: {
+            },
+        });
     }
 }

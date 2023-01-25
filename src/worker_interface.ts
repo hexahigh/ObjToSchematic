@@ -1,5 +1,7 @@
 const workerInstance = require('./worker');
 
 addEventListener('message', (e) => {
-    postMessage(workerInstance.doWork(e.data));
+    workerInstance.doWork(e.data, (result: any) => { // result: TFromWorkerMessage
+        postMessage(result);
+    });
 });

@@ -13,9 +13,11 @@ test('Random-dither', () => {
     config.assign.dithering = 'random';
 
     const worker = WorkerClient.Get;
-    worker.import(headlessConfig.import);
-    worker.voxelise(headlessConfig.voxelise);
-    worker.assign(headlessConfig.assign);
-
-    expect(StatusHandler.Get.hasId(StatusID.SchematicUnsupportedBlocks)).toBe(false);
+    worker.import(headlessConfig.import, () => {
+        worker.voxelise(headlessConfig.voxelise, () => {
+            worker.assign(headlessConfig.assign, () => {
+                expect(StatusHandler.Get.hasId(StatusID.SchematicUnsupportedBlocks)).toBe(false);
+            });
+        });
+    });
 });

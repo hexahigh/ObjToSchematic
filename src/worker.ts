@@ -4,7 +4,7 @@ import { AppError } from './util/error_util';
 import { WorkerClient } from './worker_client';
 import { TFromWorkerMessage, TToWorkerMessage } from './worker_types';
 
-export function doWork(message: TToWorkerMessage): TFromWorkerMessage {
+export function doWork(message: TToWorkerMessage, onFinish: (result: TFromWorkerMessage) => void): void {
     StatusHandler.Get.clear();
 
     if (message.action !== 'RenderNextVoxelMeshChunk' && message.action !== 'RenderNextBlockMeshChunk') {
@@ -14,78 +14,35 @@ export function doWork(message: TToWorkerMessage): TFromWorkerMessage {
     try {
         switch (message.action) {
             case 'Init':
-                return {
-                    action: 'Init',
-                    result: WorkerClient.Get.init(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.init(message.params, onFinish);
+                break;
             case 'Import':
-                return {
-                    action: 'Import',
-                    result: WorkerClient.Get.import(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.import(message.params, onFinish);
+                break;
             case 'SetMaterials':
-                return {
-                    action: 'SetMaterials',
-                    result: WorkerClient.Get.setMaterials(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.setMaterials(message.params, onFinish);
+                break;
             case 'RenderMesh':
-                return {
-                    action: 'RenderMesh',
-                    result: WorkerClient.Get.renderMesh(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.renderMesh(message.params, onFinish);
+                break;
             case 'Voxelise':
-                return {
-                    action: 'Voxelise',
-                    result: WorkerClient.Get.voxelise(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
-            /*
-            case 'RenderVoxelMesh':
-                return {
-                    action: 'RenderVoxelMesh',
-                    result: WorkerClient.Get.renderVoxelMesh(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
-            */
+                WorkerClient.Get.voxelise(message.params, onFinish);
+                break;
             case 'RenderNextVoxelMeshChunk':
-                return {
-                    action: 'RenderNextVoxelMeshChunk',
-                    result: WorkerClient.Get.renderChunkedVoxelMesh(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.renderChunkedVoxelMesh(message.params, onFinish);
+                break;
             case 'Assign':
-                return {
-                    action: 'Assign',
-                    result: WorkerClient.Get.assign(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
-            /*
-            case 'RenderBlockMesh':
-                return {
-                    action: 'RenderBlockMesh',
-                    result: WorkerClient.Get.renderBlockMesh(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
-                */
+                WorkerClient.Get.assign(message.params, onFinish);
+                break;
             case 'RenderNextBlockMeshChunk':
-                return {
-                    action: 'RenderNextBlockMeshChunk',
-                    result: WorkerClient.Get.renderChunkedBlockMesh(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                WorkerClient.Get.renderChunkedBlockMesh(message.params, onFinish);
+                break;
             case 'Export':
-                return {
-                    action: 'Export',
-                    result: WorkerClient.Get.export(message.params),
-                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
-                };
+                result: WorkerClient.Get.export(message.params, onFinish);
+                break;
         }
     } catch (e: any) {
-        return { action: e instanceof AppError ? 'KnownError' : 'UnknownError', error: e as Error };
+        onFinish({ action: e instanceof AppError ? 'KnownError' : 'UnknownError', error: e as Error });
     }
 }
 

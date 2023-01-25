@@ -107,10 +107,13 @@ export class WorkerController {
         if (AppConfig.Get.USE_WORKER_THREAD) {
             this._worker.postMessage(this._jobPending.payload);
         } else {
-            const result = doWork(this._jobPending.payload);
-            if (this._jobPending.callback) {
-                this._jobPending.callback(result);
-            }
+            doWork(this._jobPending.payload, (result: TFromWorkerMessage) => {
+                ASSERT(this._jobPending !== undefined);
+
+                if (this._jobPending.callback) {
+                    this._jobPending.callback(result);
+                }
+            });
         }
     }
 }
