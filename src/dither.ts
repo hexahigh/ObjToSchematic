@@ -1,11 +1,12 @@
 import { RGBA_255 } from './colour';
 import { AppConfig } from './config';
+import { AppRandom } from './math';
 import { ASSERT } from './util/error_util';
 import { Vector3 } from './vector';
 
 export class Ditherer {
     public static ditherRandom(colour: RGBA_255) {
-        const offset = (Math.random() - 0.5) * AppConfig.Get.DITHER_MAGNITUDE;
+        const offset = (AppRandom.Get.random() - 0.5) * AppConfig.Get.DITHER_MAGNITUDE;
 
         colour.r += offset;
         colour.g += offset;

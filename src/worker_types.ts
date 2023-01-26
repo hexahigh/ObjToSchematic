@@ -63,6 +63,7 @@ export namespace VoxeliseParams {
         useMultisampleColouring: boolean,
         enableAmbientOcclusion: boolean,
         voxelOverlapRule: TVoxelOverlapRule,
+        seed: number,
     }
 
     export type Output = {
@@ -115,6 +116,7 @@ export namespace AssignParams {
         lightThreshold: number,
         contextualAveraging: boolean,
         errorWeight: number,
+        seed: number,
     }
 
     export type Output = {

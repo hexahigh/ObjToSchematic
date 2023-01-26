@@ -346,6 +346,7 @@ export class AppContext {
                 useMultisampleColouring: uiElements.multisampleColouring.getValue(),
                 enableAmbientOcclusion: uiElements.ambientOcclusion.getValue(),
                 voxelOverlapRule: uiElements.voxelOverlapRule.getValue(),
+                seed: uiElements.seed.getValue(),
             },
         };
 
@@ -434,6 +435,7 @@ export class AppContext {
                 lightThreshold: uiElements.lightThreshold.getValue(),
                 contextualAveraging: uiElements.contextualAveraging.getValue(),
                 errorWeight: uiElements.errorWeight.getValue() / 10,
+                seed: uiElements.seed.getValue(),
             },
         };
 

@@ -1,6 +1,31 @@
+import seedrandom from 'seedrandom';
+
 import { AppError } from './util/error_util';
-import { LOG_ERROR } from './util/log_util';
+import { LOG, LOG_ERROR } from './util/log_util';
 import { Vector3 } from './vector';
+
+export class AppRandom {
+    /* Singleton */
+    private static _instance: AppRandom;
+    public static get Get() {
+        return this._instance || (this._instance = new this());
+    }
+
+    private _random: seedrandom.PRNG;
+
+    private constructor() {
+        this._random = seedrandom();
+    }
+
+    public init(seed: number) {
+        LOG(`[AppRandom]: Seeding with '${seed.toString()}'`);
+        this._random = seedrandom(seed.toString());
+    }
+
+    public random() {
+        return this._random.double();
+    }
+}
 
 export namespace AppMath {
     export const RADIANS_0 = degreesToRadians(0.0);

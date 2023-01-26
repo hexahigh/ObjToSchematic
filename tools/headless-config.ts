@@ -14,6 +14,7 @@ export const headlessConfig: THeadlessConfig = {
         useMultisampleColouring: false,
         voxelOverlapRule: 'average',
         enableAmbientOcclusion: false, // Only want true if exporting to .obj
+        seed: 0,
     },
     assign: {
         textureAtlas: 'vanilla', // Must be an atlas name that exists in /resources/atlases
@@ -26,6 +27,7 @@ export const headlessConfig: THeadlessConfig = {
         lightThreshold: 0,
         contextualAveraging: true,
         errorWeight: 0.0,
+        seed: 0,
     },
     export: {
         filepath: '/Users/lucasdower/Documents/out.obj', // Must be an absolute path to the file (can be anywhere)

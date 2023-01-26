@@ -20,6 +20,7 @@ import { ComboBoxElement, ComboBoxItem } from './elements/combobox';
 import { ConfigUIElement } from './elements/config_element';
 import { FileInputElement } from './elements/file_input';
 import { HeaderUIElement } from './elements/header_element';
+import { NumberUIElement } from './elements/number_input';
 import { OutputElement } from './elements/output';
 import { SliderElement } from './elements/slider';
 import { ToolbarItemElement } from './elements/toolbar_item';
@@ -129,6 +130,11 @@ export class UI {
                         tooltip: 'If multiple voxels are placed in the same location, use the first voxel\'s colour',
                     })
                     .setLabel('Voxel overlap'),
+                'seed': new NumberUIElement()
+                    .setMin(-Infinity)
+                    .setMax(Infinity)
+                    .setStep(1)
+                    .setLabel('Seed'),
             },
             elementsOrder: [
                 'constraintAxis',
@@ -137,6 +143,7 @@ export class UI {
                 'ambientOcclusion',
                 'multisampleColouring',
                 'voxelOverlapRule',
+                'seed',
             ],
             submitButton: new ButtonElement()
                 .setOnClick(() => {
@@ -225,6 +232,11 @@ export class UI {
                     .setStep(1)
                     .setLabel('Light threshold')
                     .setShouldObeyGroupEnables(false),
+                'seed': new NumberUIElement()
+                    .setMin(-Infinity)
+                    .setMax(Infinity)
+                    .setStep(1)
+                    .setLabel('Seed'),
             },
             elementsOrder: [
                 'textureAtlas',
@@ -236,6 +248,7 @@ export class UI {
                 'errorWeight',
                 'calculateLighting',
                 'lightThreshold',
+                'seed',
             ],
             submitButton: new ButtonElement()
                 .setOnClick(() => {

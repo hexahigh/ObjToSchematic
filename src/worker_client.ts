@@ -5,6 +5,7 @@ import { EAppEvent, EventManager } from './event';
 import { IExporter } from './exporters/base_exporter';
 import { ExporterFactory } from './exporters/exporters';
 import { ObjImporter } from './importers/obj_importer';
+import { AppRandom } from './math';
 import { Mesh } from './mesh';
 import { ProgressManager, TTaskHandle } from './progress';
 import { ASSERT } from './util/error_util';
@@ -106,6 +107,7 @@ export class WorkerClient {
 
     public voxelise(params: VoxeliseParams.Input): VoxeliseParams.Output {
         ASSERT(this._loadedMesh !== undefined);
+        AppRandom.Get.init(params.seed);
 
         const voxeliser: IVoxeliser = VoxeliserFactory.GetVoxeliser(params.voxeliser);
         this._loadedVoxelMesh = voxeliser.voxelise(this._loadedMesh, params);
@@ -150,6 +152,7 @@ export class WorkerClient {
 
     public assign(params: AssignParams.Input): AssignParams.Output {
         ASSERT(this._loadedVoxelMesh !== undefined);
+        AppRandom.Get.init(params.seed);
 
         this._loadedBlockMesh = BlockMesh.createFromVoxelMesh(this._loadedVoxelMesh, params);
 

@@ -1,4 +1,5 @@
 import { IHashable } from './hash_map';
+import { AppRandom } from './math';
 import { ASSERT } from './util/error_util';
 import { Vector3Hash } from './util/type_util';
 
@@ -36,9 +37,9 @@ export class Vector3 implements IHashable {
 
     static random() {
         return new Vector3(
-            Math.random(),
-            Math.random(),
-            Math.random(),
+            AppRandom.Get.random(),
+            AppRandom.Get.random(),
+            AppRandom.Get.random(),
         );
     }
 

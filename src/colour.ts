@@ -1,4 +1,5 @@
 import { AppConfig } from './config';
+import { AppRandom } from './math';
 import { TBrand } from './util/type_util';
 
 export type RGBA = {
@@ -17,9 +18,9 @@ export namespace RGBAUtil {
 
     export function random(): RGBA {
         return {
-            r: Math.random(),
-            g: Math.random(),
-            b: Math.random(),
+            r: AppRandom.Get.random(),
+            g: AppRandom.Get.random(),
+            b: AppRandom.Get.random(),
             a: 1.0,
         };
     }

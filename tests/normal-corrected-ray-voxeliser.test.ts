@@ -23,6 +23,7 @@ test('Voxelise solid 2x2 cube', () => {
         enableAmbientOcclusion: false,
         voxelOverlapRule: 'average',
         voxeliser: 'ncrb',
+        seed: 0,
     });
 
     const expectedVoxels = [

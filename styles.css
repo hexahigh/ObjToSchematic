@@ -850,3 +850,12 @@ a {
   font-weight: 400;
   color: var(--prop-accent-hovered)
 }
+
+
+.number-input {
+  width: 100%;
+  height: calc(var(--property-height) - 2px);
+  text-align: start;
+  padding: 0px 0px 0px 10px;
+  margin: 0px;
+}
