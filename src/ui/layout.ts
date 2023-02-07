@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import { AppContext } from '../app_context';
 import { FallableBehaviour } from '../block_mesh';
@@ -46,18 +47,23 @@ export class UI {
             elements: {
                 'input': new FileInputElement()
                     .setFileExtensions(['obj', 'vox'])
-                    .setLabel('Model file'),
+                    .setLabel('Model file')
+                    .addValueChangedListener((value) => {
+                        const parsed = path.parse(value);
+                        this._ui.import.elements.rotation.setEnabled(parsed.ext === '.obj', false);
+                    }),
                 'rotation': new VectorSpinboxElement()
                     .setLabel('Rotation')
                     .setWrap(360)
-                    .setUnits('°'),
+                    .setUnits('°')
+                    .setShouldObeyGroupEnables(false),
             },
             elementsOrder: ['input', 'rotation'],
             submitButton: new ButtonElement()
                 .setOnClick(() => {
                     this._appContext.do(EAction.Import);
                 })
-                .setLabel('Load mesh'),
+                .setLabel('Load model'),
             output: new OutputElement(),
         },
         'materials': {
