@@ -1,3 +1,4 @@
+import { EFaceVisibility } from './block_assigner';
 import { BlockMesh } from './block_mesh';
 import { AppConfig } from './config';
 import { AppConstants } from './constants';
@@ -70,39 +71,49 @@ export class ChunkedBufferGenerator {
         const cube: AttributeData = GeometryTemplates.getBoxBufferData(new Vector3(0, 0, 0));
         const voxels = voxelMesh.getVoxels();
 
+        let bufferIndex = 0;
         for (let i = 0; i < numBufferVoxels; ++i) {
             const voxelIndex = i + voxelsStartIndex;
 
             const voxel = voxels[voxelIndex];
+
+            if (voxelMesh.getFaceVisibility(voxel.position) === EFaceVisibility.None) {
+                // This voxel has no visible faces, cull it from the buffer.
+                // TODO Cull on a per-face basis, instead of per-voxel.
+                continue;
+            }
+
             const voxelColourArray = [voxel.colour.r, voxel.colour.g, voxel.colour.b, voxel.colour.a];
             const voxelPositionArray = voxel.position.toArray();
 
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.POSITION; ++j) {
-                newBuffer.position.data[i * AppConstants.VoxelMeshBufferComponentOffsets.POSITION + j] = cube.custom.position[j] + voxelPositionArray[j % 3];
+                newBuffer.position.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.POSITION + j] = cube.custom.position[j] + voxelPositionArray[j % 3];
             }
 
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.COLOUR; ++j) {
-                newBuffer.colour.data[i * AppConstants.VoxelMeshBufferComponentOffsets.COLOUR + j] = voxelColourArray[j % 4];
+                newBuffer.colour.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.COLOUR + j] = voxelColourArray[j % 4];
             }
 
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.NORMAL; ++j) {
-                newBuffer.normal.data[i * AppConstants.VoxelMeshBufferComponentOffsets.NORMAL + j] = cube.custom.normal[j];
+                newBuffer.normal.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.NORMAL + j] = cube.custom.normal[j];
             }
 
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.TEXCOORD; ++j) {
-                newBuffer.texcoord.data[i * AppConstants.VoxelMeshBufferComponentOffsets.TEXCOORD + j] = cube.custom.texcoord[j];
+                newBuffer.texcoord.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.TEXCOORD + j] = cube.custom.texcoord[j];
             }
 
             for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.INDICES; ++j) {
-                newBuffer.indices.data[i * AppConstants.VoxelMeshBufferComponentOffsets.INDICES + j] = cube.indices[j] + (i * AppConstants.INDICES_PER_VOXEL);
+                newBuffer.indices.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.INDICES + j] = cube.indices[j] + (bufferIndex * AppConstants.INDICES_PER_VOXEL);
             }
 
             if (params.enableAmbientOcclusion) {
                 const voxelOcclusionArray = OcclusionManager.Get.getOcclusions(voxel.position, voxelMesh);
                 for (let j = 0; j < AppConstants.VoxelMeshBufferComponentOffsets.OCCLUSION; ++j) {
-                    newBuffer.occlusion.data[i * AppConstants.VoxelMeshBufferComponentOffsets.OCCLUSION + j] = voxelOcclusionArray[j];
+                    newBuffer.occlusion.data[bufferIndex * AppConstants.VoxelMeshBufferComponentOffsets.OCCLUSION + j] = voxelOcclusionArray[j];
                 }
             }
+
+            ++bufferIndex;
         }
 
         return {
@@ -151,6 +162,12 @@ export class ChunkedBufferGenerator {
         for (let i = 0; i < numBufferBlocks; ++i) {
             const blockIndex = i + blocksStartIndex;
             const blockLighting = blockMesh.getBlockLighting(blocks[blockIndex].voxel.position);
+
+            if (blockMesh.getVoxelMesh().getFaceVisibility(blocks[blockIndex].voxel.position) === EFaceVisibility.None) {
+                // This voxel has no visible faces, cull it from the buffer.
+                // TODO Cull on a per-face basis, instead of per-voxel.
+                continue;
+            }
 
             for (let f = 0; f < AppConstants.FACES_PER_VOXEL; ++f) {
                 const faceName = faceOrder[f];
