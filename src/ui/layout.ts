@@ -46,7 +46,7 @@ export class UI {
             elements: {
                 'input': new FileInputElement()
                     .setFileExtensions(['obj', 'vox'])
-                    .setLabel('Wavefront .obj file'),
+                    .setLabel('Model file'),
                 'rotation': new VectorSpinboxElement()
                     .setLabel('Rotation')
                     .setWrap(360)
@@ -294,7 +294,7 @@ export class UI {
                             return Renderer.Get.getActiveMeshType() === MeshType.TriangleMesh;
                         })
                         .isEnabled(() => {
-                            return Renderer.Get.getModelsAvailable() >= MeshType.TriangleMesh;
+                            return Renderer.Get.getModelsAvailable().mesh;
                         }),
                     'voxelMesh': new ToolbarItemElement({ icon: 'voxel' })
                         .onClick(() => {
@@ -304,7 +304,7 @@ export class UI {
                             return Renderer.Get.getActiveMeshType() === MeshType.VoxelMesh;
                         })
                         .isEnabled(() => {
-                            return Renderer.Get.getModelsAvailable() >= MeshType.VoxelMesh;
+                            return Renderer.Get.getModelsAvailable().voxelMesh;
                         }),
                     'blockMesh': new ToolbarItemElement({ icon: 'block' })
                         .onClick(() => {
@@ -314,7 +314,7 @@ export class UI {
                             return Renderer.Get.getActiveMeshType() === MeshType.BlockMesh;
                         })
                         .isEnabled(() => {
-                            return Renderer.Get.getModelsAvailable() >= MeshType.BlockMesh;
+                            return Renderer.Get.getModelsAvailable().blockMesh;
                         }),
                 },
                 elementsOrder: ['mesh', 'voxelMesh', 'blockMesh'],

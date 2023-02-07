@@ -51,7 +51,7 @@ export class FileInputElement extends ConfigUIElement<string, HTMLDivElement> {
                 title: 'Load file',
                 buttonLabel: 'Load',
                 filters: [{
-                    name: 'Model file',
+                    name: `Model file (${this._fileExtensions.map((x) => `.${x}`).join(', ')})`,
                     extensions: this._fileExtensions,
                 }],
             });

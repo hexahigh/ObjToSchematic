@@ -12,6 +12,7 @@
     "build": "tsc",
     "test": "jest --config jestconfig.json",
     "start": "npm run build && electron ./dist/src/main.js --enable-logging --remote-debugging-port=9222",
+    "debug": "npm run build && electron ./dist/src/main.js --enable-logging --remote-debugging-port=9222 --OTS-ENABLE-DEBUG",
     "atlas": "node ./dist/tools/build-atlas.js",
     "palette": "node ./dist/tools/build-palette.js",
     "headless": "tsc && node ./dist/tools/run-headless.js",

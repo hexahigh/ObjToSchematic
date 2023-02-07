@@ -63,7 +63,11 @@ export class Renderer {
     private _voxelSize: number = 1.0;
     private _gridOffset: Vector3 = new Vector3(0, 0, 0);
 
-    private _modelsAvailable: number;
+    private _modelsAvailable = {
+        mesh: false,
+        voxelMesh: false,
+        blockMesh: false,
+    };
 
     private _materialBuffers: Map<string, {
         material: InternalSolidMaterial | InternalTextureMaterial,
@@ -100,7 +104,6 @@ export class Renderer {
 
         this._backgroundColour = AppConfig.Get.VIEWPORT_BACKGROUND_COLOUR;
 
-        this._modelsAvailable = 0;
         this._materialBuffers = new Map();
 
         this._gridBuffers = { x: {}, y: {}, z: {} };
@@ -206,7 +209,9 @@ export class Renderer {
     public clearMesh() {
         this._materialBuffers = new Map();
 
-        this._modelsAvailable = 0;
+        this._modelsAvailable.mesh = false;
+        this._modelsAvailable.voxelMesh = false;
+        this._modelsAvailable.blockMesh = false;
         this.setModelToUse(MeshType.None);
     }
 
@@ -287,7 +292,9 @@ export class Renderer {
         this._gridBuffers.y[MeshType.TriangleMesh] = DebugGeometryTemplates.gridY(params.dimensions);
         this._gridBuffers.z[MeshType.TriangleMesh] = DebugGeometryTemplates.gridZ(params.dimensions);
 
-        this._modelsAvailable = 1;
+        this._modelsAvailable.mesh = true;
+        this._modelsAvailable.voxelMesh = false;
+        this._modelsAvailable.blockMesh = false;
         this.setModelToUse(MeshType.TriangleMesh);
     }
 
@@ -318,7 +325,8 @@ export class Renderer {
             this._gridBuffers.y[MeshType.VoxelMesh] = DebugGeometryTemplates.gridY(Vector3.mulScalar(dimensions, voxelSize), voxelSize);
             this._gridBuffers.z[MeshType.VoxelMesh] = DebugGeometryTemplates.gridZ(Vector3.mulScalar(dimensions, voxelSize), voxelSize);
 
-            this._modelsAvailable = 2;
+            this._modelsAvailable.voxelMesh = true;
+            this._modelsAvailable.blockMesh = false;
             this.setModelToUse(MeshType.VoxelMesh);
         }
     }
@@ -365,7 +373,7 @@ export class Renderer {
 
             this._gridBuffers.y[MeshType.BlockMesh] = this._gridBuffers.y[MeshType.VoxelMesh];
 
-            this._modelsAvailable = 3;
+            this._modelsAvailable.blockMesh = true;
             this.setModelToUse(MeshType.BlockMesh);
         }
     }
@@ -502,7 +510,10 @@ export class Renderer {
     }
 
     public setModelToUse(meshType: MeshType) {
-        const isModelAvailable = this._modelsAvailable >= meshType;
+        const isModelAvailable =
+            (meshType === MeshType.TriangleMesh && this._modelsAvailable.mesh) ||
+            (meshType === MeshType.VoxelMesh && this._modelsAvailable.voxelMesh) ||
+            (meshType === MeshType.BlockMesh && this._modelsAvailable.blockMesh);
         if (isModelAvailable) {
             this._meshToUse = meshType;
         }
