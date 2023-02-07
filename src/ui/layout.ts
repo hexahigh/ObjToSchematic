@@ -45,7 +45,7 @@ export class UI {
             label: 'Import',
             elements: {
                 'input': new FileInputElement()
-                    .setFileExtensions(['obj'])
+                    .setFileExtensions(['obj', 'vox'])
                     .setLabel('Wavefront .obj file'),
                 'rotation': new VectorSpinboxElement()
                     .setLabel('Rotation')

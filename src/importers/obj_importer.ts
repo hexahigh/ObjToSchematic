@@ -14,9 +14,9 @@ import { RegExpBuilder } from '../util/regex_util';
 import { REGEX_NZ_ANY } from '../util/regex_util';
 import { REGEX_NUMBER } from '../util/regex_util';
 import { Vector3 } from '../vector';
-import { IImporter } from './base_importer';
+import { IFileImporter } from './base_importer';
 
-export class ObjImporter extends IImporter {
+export class ObjImporter extends IFileImporter<Mesh> {
     private _vertices: Vector3[] = [];
     private _normals: Vector3[] = [];
     private _uvs: UV[] = [];
@@ -24,8 +24,9 @@ export class ObjImporter extends IImporter {
 
     private _materials: Map<string, SolidMaterial | TexturedMaterial>;
 
-    public constructor() {
-        super();
+    public constructor(filepath: string) {
+        super(filepath);
+
         this._materials = new Map();
         this._materials.set('DEFAULT_UNASSIGNED', {
             type: MaterialType.solid,
@@ -286,10 +287,10 @@ export class ObjImporter extends IImporter {
         },
     ];
 
-    override parseFile(filePath: string) {
-        this._objPath = path.parse(filePath);
+    public override load(): Mesh {
+        this._objPath = path.parse(this._filepath);
 
-        this._parseOBJ(filePath);
+        this._parseOBJ(this._filepath);
 
         if (this._mtlLibs.length === 0) {
             StatusHandler.Get.add('warning', 'Could not find associated .mtl file');
@@ -304,9 +305,7 @@ export class ObjImporter extends IImporter {
 
         this._parseMTL();
         LOG('Materials', this._materials);
-    }
 
-    override toMesh(): Mesh {
         return new Mesh(this._vertices, this._normals, this._uvs, this._tris, this._materials);
     }
 

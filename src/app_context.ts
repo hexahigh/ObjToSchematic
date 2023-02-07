@@ -198,24 +198,31 @@ export class AppContext {
             ASSERT(payload.action === 'Import');
             const outputElement = this._ui.getActionOutput(EAction.Import);
 
-            const dimensions = new Vector3(
-                payload.result.dimensions.x,
-                payload.result.dimensions.y,
-                payload.result.dimensions.z,
-            );
-            dimensions.mulScalar(AppConfig.Get.CONSTRAINT_MAXIMUM_HEIGHT / 8.0).floor();
-            this.maxConstraint = dimensions;
-            this._materialManager = new MaterialMapManager(payload.result.materials);
+            if (payload.result.type === 'Mesh') {
+                const dimensions = new Vector3(
+                    payload.result.dimensions.x,
+                    payload.result.dimensions.y,
+                    payload.result.dimensions.z,
+                );
+                dimensions.mulScalar(AppConfig.Get.CONSTRAINT_MAXIMUM_HEIGHT / 8.0).floor();
+                this.maxConstraint = dimensions;
+                this._materialManager = new MaterialMapManager(payload.result.materials);
 
-            if (payload.result.triangleCount < AppConfig.Get.RENDER_TRIANGLE_THRESHOLD) {
-                outputElement.setTaskInProgress('render', '[Renderer]: Processing...');
-                this._workerController.addJob(this._renderMesh());
+                if (payload.result.triangleCount < AppConfig.Get.RENDER_TRIANGLE_THRESHOLD) {
+                    outputElement.setTaskInProgress('render', '[Renderer]: Processing...');
+                    this._workerController.addJob(this._renderMesh());
+                } else {
+                    const message = `Will not render mesh as its over ${AppConfig.Get.RENDER_TRIANGLE_THRESHOLD.toLocaleString()} triangles.`;
+                    outputElement.setTaskComplete('render', '[Renderer]: Stopped', [message], 'warning');
+                }
+
+                this._updateMaterialsAction();
             } else {
-                const message = `Will not render mesh as its over ${AppConfig.Get.RENDER_TRIANGLE_THRESHOLD.toLocaleString()} triangles.`;
-                outputElement.setTaskComplete('render', '[Renderer]: Stopped', [message], 'warning');
-            }
+                ASSERT(payload.result.type === 'VoxelMesh');
 
-            this._updateMaterialsAction();
+                outputElement.setTaskInProgress('render', '[Renderer]: Processing?');
+                this._workerController.addJob(this._renderVoxelMesh());
+            }
         };
         callback.bind(this);
 

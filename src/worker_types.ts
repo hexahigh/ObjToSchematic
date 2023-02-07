@@ -27,9 +27,12 @@ export namespace ImportParams {
     }
 
     export type Output = {
+        type: 'Mesh',
         triangleCount: number,
         dimensions: Vector3,
         materials: MaterialMap
+    } | {
+        type: 'VoxelMesh',
     }
 }
 

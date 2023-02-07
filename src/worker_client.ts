@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { Atlas } from './atlas';
 import { BlockMesh } from './block_mesh';
 import { BufferGenerator } from './buffer';
@@ -5,6 +7,7 @@ import { EAppEvent, EventManager } from './event';
 import { IExporter } from './exporters/base_exporter';
 import { ExporterFactory } from './exporters/exporters';
 import { ObjImporter } from './importers/obj_importer';
+import { VoxImporter } from './importers/vox_importer';
 import { Mesh } from './mesh';
 import { ProgressManager, TTaskHandle } from './progress';
 import { StatusHandler } from './status';
@@ -76,20 +79,41 @@ export class WorkerClient {
     }
 
     public import(params: ImportParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
-        const importer = new ObjImporter();
-        importer.parseFile(params.filepath);
-        this._loadedMesh = importer.toMesh();
-        this._loadedMesh.processMesh(params.rotation.y, params.rotation.x, params.rotation.z);
+        const parsedPath = path.parse(params.filepath);
 
-        onFinish({
-            action: 'Import',
-            statusMessages: StatusHandler.Get.getAllStatusMessages(),
-            result: {
-                triangleCount: this._loadedMesh.getTriangleCount(),
-                dimensions: this._loadedMesh.getBounds().getDimensions(),
-                materials: this._loadedMesh.getMaterials(),
-            },
-        });
+        switch (parsedPath.ext) {
+            case '.obj': {
+                const importer = new ObjImporter(params.filepath);
+                this._loadedMesh = importer.load();
+
+                this._loadedMesh.processMesh(params.rotation.y, params.rotation.x, params.rotation.z);
+
+                onFinish({
+                    action: 'Import',
+                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
+                    result: {
+                        type: 'Mesh',
+                        triangleCount: this._loadedMesh.getTriangleCount(),
+                        dimensions: this._loadedMesh.getBounds().getDimensions(),
+                        materials: this._loadedMesh.getMaterials(),
+                    },
+                });
+                break;
+            }
+            case '.vox': {
+                const importer = new VoxImporter(params.filepath);
+                this._loadedVoxelMesh = importer.load();
+
+                onFinish({
+                    action: 'Import',
+                    statusMessages: StatusHandler.Get.getAllStatusMessages(),
+                    result: {
+                        type: 'VoxelMesh',
+                    },
+                });
+                break;
+            }
+        }
     }
 
     public setMaterials(params: SetMaterialsParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {

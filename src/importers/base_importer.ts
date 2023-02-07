@@ -1,6 +1,9 @@
-import { Mesh } from '../mesh';
+export abstract class IFileImporter<T> {
+    protected readonly _filepath: string;
 
-export abstract class IImporter {
-    abstract parseFile(filePath: string): void;
-    abstract toMesh(): Mesh;
+    public constructor(filepath: string) {
+        this._filepath = filepath;
+    }
+
+    public abstract load(): T;
 }
