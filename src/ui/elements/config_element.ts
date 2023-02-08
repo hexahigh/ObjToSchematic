@@ -66,6 +66,15 @@ export abstract class ConfigUIElement<T, F> extends BaseUIElement<F> {
     }
 
     /**
+     * Add a delegate that will be called when the value/enabled state changes.
+     */
+    public addStateChangedListener(delegate: () => void) {
+        this._onValueChangedListeners.push(delegate);
+        this._onEnabledChangedListeners.push(delegate);
+        return this;
+    }
+
+    /**
      * Add a delegate that will be called when the value changes.
      */
     public addValueChangedListener(delegate: (newValue: T) => void) {

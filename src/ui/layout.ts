@@ -25,6 +25,7 @@ import { OutputElement } from './elements/output';
 import { SliderElement } from './elements/slider';
 import { ToolbarItemElement } from './elements/toolbar_item';
 import { VectorSpinboxElement } from './elements/vector_spinbox';
+import { UIUtil } from '../util/ui_util';
 
 export interface Group {
     label: string;
@@ -47,11 +48,7 @@ export class UI {
             elements: {
                 'input': new FileInputElement()
                     .setFileExtensions(['obj', 'vox'])
-                    .setLabel('Model file')
-                    .addValueChangedListener((value) => {
-                        const parsed = path.parse(value);
-                        this._ui.import.elements.rotation.setEnabled(parsed.ext === '.obj', false);
-                    }),
+                    .setLabel('Model file'),
                 'rotation': new VectorSpinboxElement()
                     .setLabel('Rotation')
                     .setWrap(360)
@@ -423,6 +420,10 @@ export class UI {
 
     public constructor(appContext: AppContext) {
         this._appContext = appContext;
+
+        for (let i = 0; i < EAction.MAX; ++i) {
+            this._groupEnableStates.set(i, true);
+        }
     }
 
     public tick(isBusy: boolean) {
@@ -457,7 +458,7 @@ export class UI {
                     <div class="h-div">
                     </div>
                 </div>
-                <div class="group-heading">
+                <div class="group-heading" id="group-heading-${group.label}">
                     ${group.label.toUpperCase()}
                 </div>
                 <div style="flex-grow: 1">
@@ -505,6 +506,11 @@ export class UI {
         toolbarHTML += '</div>';
 
         document.getElementById('toolbar')!.innerHTML = toolbarHTML;
+
+        this._ui.import.elements.input.addStateChangedListener(() => {
+            const parsed = path.parse(this._ui.import.elements.input.getValue());
+            this._ui.import.elements.rotation.setEnabled(parsed.ext === '.obj', false);
+        });
     }
 
     public cacheValues(action: EAction) {
@@ -563,6 +569,13 @@ export class UI {
         `;
     }
 
+    public scrollIntoView(action: EAction) {
+        const group = this._getEActionGroup(action);
+        const elementId = `group-heading-${group.label}`;
+
+        UIUtil.getElementById(elementId).scrollIntoView({ behavior: 'smooth' });
+    }
+
     public getActionOutput(action: EAction) {
         const group = this._getEActionGroup(action);
         return group.output;
@@ -611,16 +624,42 @@ export class UI {
         return this._uiDull;
     }
 
+    /*
     public enableTo(action: EAction) {
         for (let i = 0; i <= action; ++i) {
             this.enable(i);
         }
+    }
+    */
+
+    private _groupEnableStates = new Map<EAction, boolean>();
+    private _cachedGroupEnableStates = new Map<EAction, boolean>();
+
+    public cacheGroupEnableStates() {
+        this._cachedGroupEnableStates.clear();
+        this._groupEnableStates.forEach((state, action) => {
+            this._cachedGroupEnableStates.set(action, state);
+        });
+    }
+
+    public restoreGroupEnableStates() {
+        this._groupEnableStates.clear();
+        this._cachedGroupEnableStates.forEach((state, action) => {
+            this._groupEnableStates.set(action, state);
+            if (state) {
+                this.enable(action);
+            } else {
+                this.disable(action);
+            }
+        });
     }
 
     public enable(action: EAction) {
         if (action >= EAction.MAX) {
             return;
         }
+
+        this._groupEnableStates.set(action, true);
 
         LOG('[UI]: Enabling', action);
         const group = this._getEActionGroup(action);
@@ -640,6 +679,7 @@ export class UI {
         }
 
         for (let i = action; i < EAction.MAX; ++i) {
+            this._groupEnableStates.set(i, false);
             const group = this._getEActionGroup(i);
             //LOG('[UI]: Disabling', group.label);
             for (const compName in group.elements) {

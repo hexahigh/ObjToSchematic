@@ -87,24 +87,25 @@ export class AppContext {
     }
 
     public do(action: EAction) {
-        this._ui.cacheValues(action);
-        this._ui.disable(action);
-        this._ui.disableAll();
-
         const workerJob = this._getWorkerJob(action);
         if (workerJob === undefined) {
-            this._ui.enableTo(action);
             return;
         }
+        this._lastAction = action;
 
-        const uiOutput = this._ui.getActionOutput(action);
+        this._ui.disable(action + 1);
+        this._ui.cacheValues(action);
+        this._ui.cacheGroupEnableStates();
+        this._ui.disableAll();
 
-        const jobCallback = (payload: TFromWorkerMessage) => {
-            //this._ui.enableTo(action);
-            switch (payload.action) {
-                case 'KnownError':
-                case 'UnknownError': {
-                    uiOutput.setTaskComplete(
+        this._workerController.addJob({
+            id: workerJob.id,
+            payload: workerJob.payload,
+            callback: (payload: TFromWorkerMessage) => {
+                this._ui.restoreGroupEnableStates();
+
+                if (payload.action === 'KnownError' || payload.action === 'UnknownError') {
+                    this._ui.getActionOutput(action).setTaskComplete(
                         'action',
                         StatusHandler.Get.getDefaultFailureMessage(action),
                         [payload.action === 'KnownError' ? payload.error.message : 'Something unexpectedly went wrong'],
@@ -116,29 +117,17 @@ export class AppContext {
                         .stopLoading()
                         .setProgress(0.0);
 
-                    this._ui.enableTo(action);
-                    break;
-                }
-                default: {
-                    //this._ui.enableTo(action + 1);
-
+                } else {
                     ASSERT(payload.action !== 'Progress');
+
                     const { builder, style } = this._getActionMessageBuilder(action, payload.statusMessages);
-                    uiOutput.setMessage(builder, style as OutputStyle);
+                    this._ui.getActionOutput(action).setMessage(builder, style as OutputStyle);
 
                     if (workerJob.callback) {
                         workerJob.callback(payload);
                     }
                 }
-            }
-        };
-
-        this._lastAction = action;
-
-        this._workerController.addJob({
-            id: workerJob.id,
-            payload: workerJob.payload,
-            callback: jobCallback,
+            },
         });
     }
 
@@ -177,7 +166,6 @@ export class AppContext {
         }
         ASSERT(false);
     }
-
     private _import(): TWorkerJob {
         const uiElements = this._ui.layout.import.elements;
 
@@ -199,11 +187,7 @@ export class AppContext {
             const outputElement = this._ui.getActionOutput(EAction.Import);
 
             if (payload.result.type === 'Mesh') {
-                const dimensions = new Vector3(
-                    payload.result.dimensions.x,
-                    payload.result.dimensions.y,
-                    payload.result.dimensions.z,
-                );
+                const dimensions = Vector3.copy(payload.result.dimensions);
                 dimensions.mulScalar(AppConfig.Get.CONSTRAINT_MAXIMUM_HEIGHT / 8.0).floor();
                 this.maxConstraint = dimensions;
                 this._materialManager = new MaterialMapManager(payload.result.materials);
@@ -215,14 +199,16 @@ export class AppContext {
                     const message = `Will not render mesh as its over ${AppConfig.Get.RENDER_TRIANGLE_THRESHOLD.toLocaleString()} triangles.`;
                     outputElement.setTaskComplete('render', '[Renderer]: Stopped', [message], 'warning');
                 }
-
-                this._updateMaterialsAction();
             } else {
                 ASSERT(payload.result.type === 'VoxelMesh');
 
-                outputElement.setTaskInProgress('render', '[Renderer]: Processing?');
+                this._materialManager.materials.clear();
+
+                outputElement.setTaskComplete('render', '[Renderer]: Stopped', [], 'success');
                 this._workerController.addJob(this._renderVoxelMesh());
             }
+
+            this._updateMaterialsAction();
         };
         callback.bind(this);
 
@@ -262,7 +248,8 @@ export class AppContext {
                 Renderer.Get.setModelToUse(MeshType.TriangleMesh);
             });
 
-            this._ui.enableTo(EAction.Voxelise);
+            this._ui.enable(EAction.Voxelise);
+            this._ui.scrollIntoView(EAction.Voxelise);
         };
 
         return { id: 'Import', payload: payload, callback: callback };
@@ -307,7 +294,9 @@ export class AppContext {
         const callback = (payload: TFromWorkerMessage) => {
             // This callback is not managed through `AppContext::do`, therefore
             // we need to check the payload is not an error
-            this._ui.enableTo(EAction.Voxelise);
+            this._ui.enable(EAction.Materials);
+            this._ui.enable(EAction.Voxelise);
+            this._ui.scrollIntoView(EAction.Materials);
 
             switch (payload.action) {
                 case 'KnownError':
@@ -395,7 +384,8 @@ export class AppContext {
                     );
                     LOG_ERROR(payload.error);
 
-                    this._ui.enableTo(EAction.Assign);
+                    this._ui.enable(EAction.Assign);
+                    this._ui.scrollIntoView(EAction.Assign);
                     break;
                 }
                 default: {
@@ -411,7 +401,8 @@ export class AppContext {
                             [],
                             'success',
                         );
-                        this._ui.enableTo(EAction.Assign);
+                        this._ui.enable(EAction.Assign);
+                        this._ui.scrollIntoView(EAction.Assign);
                     }
                 }
             }
@@ -483,7 +474,8 @@ export class AppContext {
                     );
                     LOG_ERROR(payload.error);
 
-                    this._ui.enableTo(EAction.Export);
+                    this._ui.enable(EAction.Export);
+                    this._ui.scrollIntoView(EAction.Export);
                     break;
                 }
                 default: {
@@ -499,7 +491,8 @@ export class AppContext {
                             [],
                             'success',
                         );
-                        this._ui.enableTo(EAction.Export);
+                        this._ui.enable(EAction.Export);
+                        this._ui.scrollIntoView(EAction.Export);
                     }
                 }
             }
@@ -539,7 +532,8 @@ export class AppContext {
         const callback = (payload: TFromWorkerMessage) => {
             // This callback is managed through `AppContext::do`, therefore
             // this callback is only called if the job is successful.
-            this._ui.enableTo(EAction.Export);
+            this._ui.enable(EAction.Export);
+            this._ui.scrollIntoView(EAction.Export);
         };
 
         return { id: 'Export', payload: payload, callback: callback };

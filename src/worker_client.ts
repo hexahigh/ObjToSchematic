@@ -81,6 +81,8 @@ export class WorkerClient {
     public import(params: ImportParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         const parsedPath = path.parse(params.filepath);
 
+        this._voxelMeshChunkIndex = 0;
+
         switch (parsedPath.ext) {
             case '.obj': {
                 const importer = new ObjImporter(params.filepath);
@@ -120,6 +122,7 @@ export class WorkerClient {
         ASSERT(this._loadedMesh !== undefined);
 
         this._loadedMesh.setMaterials(params.materials);
+        this._voxelMeshChunkIndex = 0;
 
         onFinish({
             action: 'SetMaterials',
@@ -133,6 +136,8 @@ export class WorkerClient {
 
     public renderMesh(params: RenderMeshParams.Input, onFinish: (result: TFromWorkerMessage) => void): void {
         ASSERT(this._loadedMesh !== undefined);
+
+        this._voxelMeshChunkIndex = 0;
 
         onFinish({
             action: 'RenderMesh',
